@@ -1,1 +1,14 @@
+name: Name Issue
+description: This Issue Is for testing.
+title: "[TEST]: "
+labels: ["test", "triage"]
 
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Enter name
+      description: Enter your name?
+      placeholder: ex. Jhon Doe
+    validations:
+      required: true
