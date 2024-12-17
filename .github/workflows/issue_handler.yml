@@ -2,7 +2,8 @@ name: Handle issue open
 
 on: 
   issues:
-    types:[opened]
+    types:
+      - opened
 
 jobs:
   process-issue:
