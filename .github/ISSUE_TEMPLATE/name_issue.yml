@@ -10,8 +10,8 @@ body:
       label: "Your Name"
       description: "Please enter your full name."
       placeholder: "e.g. Jane Doe"
-    validation:
-      required: true
+    validations:
+      required: false
 
   - type: input
     id: designation
@@ -19,5 +19,5 @@ body:
       label: "Your Designation"
       description: "Please provide your designation or role."
       placeholder: "e.g. Software Engineer"
-    validation:
+    validations:
       required: true
