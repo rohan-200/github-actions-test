@@ -4,25 +4,21 @@ on:
     types: [opened]
 
 jobs:
-  parse-issue:
+  parse:
     runs-on: ubuntu-latest
     steps:
-      - name: Parse Issue Fields
+      - name: Parse Issue Body
+        uses: imjohnbo/issue-body-parser@v1
+        with:
+          # By default, this action will parse the issue body from the event payload.
+          # If you're using issue forms, it automatically extracts the form fields.
+          # You can optionally set a 'prefix' or other parsing options; see the action docs for details.
+          prefix: ""
+
+      - name: Print Parsed Output
         run: |
-          BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
-
-          # Define the headings you want to parse here
-          HEADINGS=("Your Name" "Your Designation")
-
-          OUTPUT="{"
-          for H in "${HEADINGS[@]}"; do
-            FULL_HEADING="### ${H}"
-            VALUE=$(echo "$BODY" | awk -v h="$FULL_HEADING" '$0==h {getline; print}')
-            # Convert heading to a JSON-friendly key by replacing spaces with underscores
-            KEY=$(echo "$H" | tr ' ' '_')
-            OUTPUT+="\"$KEY\": \"$VALUE\","
-          done
-          # Remove trailing comma and finalize the JSON object
-          OUTPUT="${OUTPUT%,}}"
-
-          echo "$OUTPUT"
+          # The parsed values will be available as step outputs.
+          # For Issue Forms, each form field will appear as an output keyed by the field's 'id'.
+          # Print all outputs as JSON:
+          echo "Parsed Values:"
+          echo "${{ toJson(steps.parse.outputs) }}"
