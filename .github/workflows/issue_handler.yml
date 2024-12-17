@@ -1,24 +1,27 @@
-name: Parse Issue Data
+name: Parse Issue Form
 on:
   issues:
     types: [opened]
 
 jobs:
-  parse:
+  parse-issue:
     runs-on: ubuntu-latest
     steps:
-      - name: Parse Issue Body
-        uses: imjohnbo/issue-body-parser@v1
-        with:
-          # By default, this action will parse the issue body from the event payload.
-          # If you're using issue forms, it automatically extracts the form fields.
-          # You can optionally set a 'prefix' or other parsing options; see the action docs for details.
-          prefix: ""
+      - name: Convert Issue Form to JSON
+        # Uses the issue-form-json action from GitHub Marketplace
+        uses: github-actions-experiments/issue-form-json@v1
 
-      - name: Print Parsed Output
+      - name: Print Parsed JSON
         run: |
-          # The parsed values will be available as step outputs.
-          # For Issue Forms, each form field will appear as an output keyed by the field's 'id'.
-          # Print all outputs as JSON:
-          echo "Parsed Values:"
-          echo "${{ toJson(steps.parse.outputs) }}"
+          echo "Issue form as JSON:"
+          echo "${{ steps.convert.outputs.json }}"
+
+      - name: Extract Specific Fields
+        run: |
+          # If your form has fields like "name" and "designation" (defined in the issue form YAML):
+          # You can extract them using jq:
+          NAME=$(echo "${{ steps.convert.outputs.json }}" | jq -r '.name')
+          DESIGNATION=$(echo "${{ steps.convert.outputs.json }}" | jq -r '.designation')
+
+          echo "Name: $NAME"
+          echo "Designation: $DESIGNATION"
