@@ -1,16 +1,28 @@
-name: Handle issue open
-
-on: 
+name: Parse Issue Data
+on:
   issues:
-    types:
-      - opened
+    types: [opened]
 
 jobs:
-  process-issue:
+  parse-issue:
     runs-on: ubuntu-latest
-    # if: contains(github.event.issue.lables.*.name,'test')
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Parse Issue Fields
+        run: |
+          BODY=$(jq -r '.issue.body' "$GITHUB_EVENT_PATH")
 
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+          # Define the headings you want to parse here
+          HEADINGS=("Your Name" "Your Designation")
+
+          OUTPUT="{"
+          for H in "${HEADINGS[@]}"; do
+            FULL_HEADING="### ${H}"
+            VALUE=$(echo "$BODY" | awk -v h="$FULL_HEADING" '$0==h {getline; print}')
+            # Convert heading to a JSON-friendly key by replacing spaces with underscores
+            KEY=$(echo "$H" | tr ' ' '_')
+            OUTPUT+="\"$KEY\": \"$VALUE\","
+          done
+          # Remove trailing comma and finalize the JSON object
+          OUTPUT="${OUTPUT%,}}"
+
+          echo "$OUTPUT"
