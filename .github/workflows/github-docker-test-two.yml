@@ -1,0 +1,65 @@
+name: Run Commands in Docker Container and Capture Output
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run-in-container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull Docker image
+        run: docker pull busybox:latest
+
+      - name: Run Docker container
+        run: docker run --name my_container -d busybox:latest sleep 60
+
+      - name: Gather container information
+        run: |
+          # Create a directory to store output files
+          mkdir -p container_info
+
+          # Retrieve environment variables
+          docker exec my_container printenv > container_info/env_vars.txt
+
+          # Retrieve system information
+          docker exec my_container uname -a > container_info/system_info.txt
+
+          # Retrieve process list
+          docker exec my_container ps aux > container_info/process_list.txt
+
+      - name: Format information as Markdown
+        run: |
+          echo "## Docker Container Information" >> container_info/summary.md
+          echo "" >> container_info/summary.md
+
+          echo "### Environment Variables" >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+          cat container_info/env_vars.txt >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+          echo "" >> container_info/summary.md
+
+          echo "### System Information" >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+          cat container_info/system_info.txt >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+          echo "" >> container_info/summary.md
+
+          echo "### Process List" >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+          cat container_info/process_list.txt >> container_info/summary.md
+          echo '```' >> container_info/summary.md
+
+      - name: Add Markdown to workflow summary
+        run: |
+          cat container_info/summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Stop and remove Docker container
+        run: |
+          docker stop my_container
+          docker rm my_container
