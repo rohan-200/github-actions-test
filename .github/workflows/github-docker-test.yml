@@ -1,0 +1,34 @@
+name: Run Commands in Docker Container and Capture Output
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    
+
+jobs:
+  run-in-container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull Docker image
+        run: docker pull busybox:latest
+
+      - name: Run Docker container
+        run: docker run --name my_container -d busybox:latest sleep 60
+
+      - name: Execute command inside container and capture output
+        run: |
+          docker exec my_container sh -c "echo 'Hello from inside the container!' > /output.txt"
+          docker cp my_container:/output.txt ./output.txt
+
+      - name: Display command output
+        run: cat ./output.txt
+
+      - name: Stop and remove Docker container
+        run: |
+          docker stop my_container
+          docker rm my_container
